@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import type { Statement } from "better-sqlite3";
 import { getDb } from "../../../lib/db";
 import { getEmbIndex, cosineSim } from "../../../lib/embedding";
 import type { Question } from "../../../types";
@@ -367,12 +366,6 @@ export async function POST(req: NextRequest) {
 
     // DB: fetch page text by (fileName, page)
     const db = getDb();
-    const fetchPageStmt = db.prepare(`
-      SELECT fileName, relativePath, page, text
-      FROM pages_fts
-      WHERE fileName = ? AND page = ?
-      LIMIT 1;
-    `) as Statement<[string, number], PageRow>;
 
     // Embedding index
     const emb = getEmbIndex();
@@ -431,7 +424,7 @@ export async function POST(req: NextRequest) {
         for (const v of want.values()) {
           let row: PageRow | undefined;
           try {
-            row = fetchPageStmt.get(v.fileName, v.page);
+            row = db.get(v.fileName, v.page);
           } catch {}
           if (!row?.text) continue;
           pages.push({

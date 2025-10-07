@@ -14,13 +14,13 @@
     "@heroui/react": "^2.8.5",
     "@heroui/system": "^2.4.23",
     "@heroui/theme": "^2.4.23",
-    "better-sqlite3": "^12.4.1",
     "framer-motion": "^12.23.22",
     "next": "15.5.4",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^4.10.38",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "sql.js": "^1.13.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

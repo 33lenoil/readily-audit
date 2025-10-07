@@ -1,17 +1,55 @@
 import path from "node:path";
-import DatabaseCtor from "better-sqlite3";
+import fs from "node:fs";
 
-// Derive the instance type from the constructor
-type DB = InstanceType<typeof DatabaseCtor>;
+type PageRow = {
+  fileName: string;
+  relativePath: string;
+  page: number;
+  text: string;
+};
 
-let db: DB | null = null;
+type PagesIndex = Record<string, string>; // "fileName#page" -> "text"
 
-export function getDb(): DB {
-  if (!db) {
-    const dbPath = path.resolve(process.cwd(), "public", "policies.db");
-    db = new DatabaseCtor(dbPath, { readonly: true, fileMustExist: true });
-    // Optional for reads; safe to keep
-    db.pragma("journal_mode = WAL");
+let pagesCache: PagesIndex | null = null;
+
+function getPagesIndex(): PagesIndex {
+  if (!pagesCache) {
+    const indexPath = path.resolve(process.cwd(), "public", "pages-index.json");
+
+    if (!fs.existsSync(indexPath)) {
+      throw new Error(
+        `Pages index not found at ${indexPath}. Run 'node scripts/dump-pages-json-sqljs.mjs' to generate it.`
+      );
+    }
+
+    const raw = fs.readFileSync(indexPath, "utf8");
+    pagesCache = JSON.parse(raw) as PagesIndex;
   }
-  return db;
+  return pagesCache;
+}
+
+export type PageFetcher = {
+  get: (fileName: string, page: number) => PageRow | undefined;
+};
+
+export function getDb(): PageFetcher {
+  const index = getPagesIndex();
+
+  return {
+    get: (fileName: string, page: number): PageRow | undefined => {
+      const key = `${fileName}#${page}`;
+      const text = index[key];
+
+      if (!text) {
+        return undefined;
+      }
+
+      return {
+        fileName,
+        relativePath: "", // Not stored in JSON, but not used in check route
+        page,
+        text,
+      };
+    },
+  };
 }
