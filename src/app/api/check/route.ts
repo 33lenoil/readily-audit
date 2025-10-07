@@ -547,6 +547,7 @@ Decision rubric (recall-favoring):
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
+    console.error(msg);
     return new Response(JSON.stringify({ error: msg }), { status: 500 });
   }
 }
