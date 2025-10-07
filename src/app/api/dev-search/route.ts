@@ -8,7 +8,8 @@ interface DbRow {
   text: string;
 }
 
-export const runtime = "node"; // ensure Node runtime for better-sqlite3
+export const runtime = "nodejs"; // ensure Node runtime for better-sqlite3
+export const dynamic = "force-dynamic";
 
 function buildFtsQuery(q: string) {
   // Minimal keywordizer: keep words & numbers, quote phrases like "calendar days"
