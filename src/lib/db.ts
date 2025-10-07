@@ -1,5 +1,5 @@
-import path from "node:path";
-import fs from "node:fs";
+// Import the pages index directly - this works in both local and Vercel
+import pagesIndexData from "../../public/pages-index.json";
 
 type PageRow = {
   fileName: string;
@@ -10,35 +10,20 @@ type PageRow = {
 
 type PagesIndex = Record<string, string>; // "fileName#page" -> "text"
 
-let pagesCache: PagesIndex | null = null;
+// Cast the imported data to the correct type
+const pagesIndex = pagesIndexData as PagesIndex;
 
-function getPagesIndex(): PagesIndex {
-  if (!pagesCache) {
-    const indexPath = path.resolve(process.cwd(), "public", "pages-index.json");
-
-    if (!fs.existsSync(indexPath)) {
-      throw new Error(
-        `Pages index not found at ${indexPath}. Run 'node scripts/dump-pages-json-sqljs.mjs' to generate it.`
-      );
-    }
-
-    const raw = fs.readFileSync(indexPath, "utf8");
-    pagesCache = JSON.parse(raw) as PagesIndex;
-  }
-  return pagesCache;
-}
+console.log(`✅ Loaded ${Object.keys(pagesIndex).length} pages from index`);
 
 export type PageFetcher = {
   get: (fileName: string, page: number) => PageRow | undefined;
 };
 
 export function getDb(): PageFetcher {
-  const index = getPagesIndex();
-
   return {
     get: (fileName: string, page: number): PageRow | undefined => {
       const key = `${fileName}#${page}`;
-      const text = index[key];
+      const text = pagesIndex[key];
 
       if (!text) {
         return undefined;
